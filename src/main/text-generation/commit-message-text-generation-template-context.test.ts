@@ -141,4 +141,32 @@ describe('command templates without work context', () => {
     expect(run.execute).not.toHaveBeenCalled()
     expect(result.success).toBe(false)
   })
+
+  it.each([undefined, '', 'I will inspect the task'])(
+    'refuses assistant-only branch templates when the reply is %s',
+    async (assistantMessage) => {
+      const run = recordingTarget('extend-login-timeout')
+      const result = await generateBranchNameFromContext(
+        { firstPrompt: 'Extend the login timeout', assistantMessage },
+        params('Name this: {assistantMessage}'),
+        run.target
+      )
+      expect(result.success).toBe(false)
+      expect(run.execute).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(['{firstPrompt}', '{basePrompt}', '{firstPrompt}\n{assistantMessage}'])(
+    'forwards the task through a branch template containing %s',
+    async (template) => {
+      const run = recordingTarget('extend-login-timeout')
+      const result = await generateBranchNameFromContext(
+        { firstPrompt: 'Extend the login timeout' },
+        params(template),
+        run.target
+      )
+      expect(result.success).toBe(true)
+      expect(run.prompts[0]).toContain('Extend the login timeout')
+    }
+  )
 })

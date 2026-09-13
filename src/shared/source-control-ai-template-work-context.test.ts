@@ -27,6 +27,12 @@ describe('findMissingWorkContextError', () => {
     )
   })
 
+  it('does not count {assistantMessage}, which is empty when no agent has replied', () => {
+    expect(
+      findMissingWorkContextError('branchName', 'Name this: {assistantMessage}')
+    ).not.toBeNull()
+  })
+
   it('does not count a variable that belongs to another action', () => {
     expect(findMissingWorkContextError('commitMessage', '{patch}')).not.toBeNull()
     expect(findMissingWorkContextError('pullRequest', '{stagedPatch}')).not.toBeNull()
