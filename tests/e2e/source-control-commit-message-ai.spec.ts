@@ -151,9 +151,13 @@ test.describe('Source Control AI commit messages', () => {
 
   test('copies and saves a base preview without losing staged context', async ({
     orcaPage,
-    testRepoPath
+    testRepoPath,
+    registerPostElectronShutdownCleanup
   }, testInfo) => {
     const { branchName, worktreePath } = createWorktreeWithStagedChange(testRepoPath)
+    registerPostElectronShutdownCleanup(async () =>
+      cleanupWorktree(testRepoPath, worktreePath, branchName)
+    )
     const generatorPath = path.join(os.tmpdir(), `${branchName}-preview-generator.cjs`)
     writeLinkedIssueEchoGenerator(generatorPath, [
       "  const valid = prompt.includes('diff --git a/README.md b/README.md') && prompt.includes('+Generated flow.') && prompt.includes('Use Conventional Commits.') && !prompt.includes('src/example.ts') && !prompt.includes('{stagedPatch}')",
@@ -239,7 +243,6 @@ test.describe('Source Control AI commit messages', () => {
       await orcaPage.screenshot({ path: testInfo.outputPath('generated-from-saved-template.png') })
     } finally {
       rmSync(generatorPath, { force: true })
-      cleanupWorktree(testRepoPath, worktreePath, branchName)
     }
   })
 })
